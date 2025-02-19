@@ -23,6 +23,7 @@ contract Vault is Ownable, AccessControlEnumerable{
     }
 
     function setToken(address _token) public onlyOwner {
+        require(_token != address(0), "Token address cannot be zero");
         token = IERC20(_token);
     }
 
@@ -36,7 +37,8 @@ contract Vault is Ownable, AccessControlEnumerable{
     ) external onlyWithdrawer{
         require(withdrawEnable, "Withdraw is disabled");
         require(_amount <= maxWithdrawalAmount, "Amount exceeds max withdrawal amount");
-        token.transfer(_to, _amount);
+        require(token.balanceOf(address(this)) >= _amount, "Vault: Insufficient funds");
+        SafeERC20.safeTransfer(token, _to, _amount);
     }
 
     function deposit(

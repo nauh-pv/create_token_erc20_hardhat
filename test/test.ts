@@ -19,7 +19,7 @@ describe("Vault", function () {
 
   let vault: any;
   let token: any;
-
+  token;
   beforeEach(async () => {
     await ethers.provider.send("hardhat_reset", []);
     [owner, alice, bob, carol] = await ethers.getSigners();
@@ -38,8 +38,10 @@ describe("Vault", function () {
     await token.transfer(alice.address, parseEther(1 * 10 ** 6));
     await token
       .connect(alice)
-      .approve(vault.address, await token.balanceOf(alice.address));
+      .approve(vault.target, await token.balanceOf(alice.address));
+
     await vault.connect(alice).deposit(parseEther(500 * 10 ** 3));
+
     expect(await token.balanceOf(vault.target)).to.equal(
       parseEther(500 * 10 ** 3)
     );
@@ -77,11 +79,12 @@ describe("Vault", function () {
     await token.transfer(alice.address, parseEther(1 * 10 ** 6));
     await token
       .connect(alice)
-      .approve(vault.address, await token.balanceOf(alice.address));
+      .approve(vault.target, await token.balanceOf(alice.address));
     await expect(
       vault.connect(alice).deposit(parseEther(2 * 10 ** 6))
     ).to.be.revertedWith("Insufficient account balance");
   });
+
   it("Should not withdraw, Withdraw is not available ", async () => {
     //grant withdrawer role to Bob
     let WITHDRAWER_ROLE = keccak256(toUtf8Bytes("WITHDRAWER_ROLE"));
@@ -96,14 +99,15 @@ describe("Vault", function () {
     await token.transfer(alice.address, parseEther(1 * 10 ** 6));
     await token
       .connect(alice)
-      .approve(vault.address, await token.balanceOf(alice.address));
+      .approve(vault.target, await token.balanceOf(alice.address));
     await vault.connect(alice).deposit(parseEther(500 * 10 ** 3));
 
     // bob withdraw into alice address
     await expect(
       vault.connect(bob).withdraw(parseEther(300 * 10 ** 3), alice.address)
-    ).to.be.revertedWith("Withdraw is not available");
+    ).to.be.revertedWith("Withdraw is disabled");
   });
+
   it("Should not withdraw, Exceed maximum amount ", async () => {
     //grant withdrawer role to Bob
     let WITHDRAWER_ROLE = keccak256(toUtf8Bytes("WITHDRAWER_ROLE"));
@@ -118,14 +122,15 @@ describe("Vault", function () {
     await token.transfer(alice.address, parseEther(1 * 10 ** 6));
     await token
       .connect(alice)
-      .approve(vault.address, token.balanceOf(alice.address));
+      .approve(vault.target, token.balanceOf(alice.address));
     await vault.connect(alice).deposit(parseEther(500 * 10 ** 3));
 
     // bob withdraw into alice address
     await expect(
       vault.connect(bob).withdraw(parseEther(2 * 10 ** 3), alice.address)
-    ).revertedWith("Exceed maximum amount");
+    ).revertedWith("Amount exceeds max withdrawal amount");
   });
+
   it("Should not withdraw, Caller is not a withdrawer", async () => {
     //grant withdrawer role to Bob
     let WITHDRAWER_ROLE = keccak256(toUtf8Bytes("WITHDRAWER_ROLE"));
@@ -140,7 +145,7 @@ describe("Vault", function () {
     await token.transfer(alice.address, parseEther(1 * 10 ** 6));
     await token
       .connect(alice)
-      .approve(vault.address, token.balanceOf(alice.address));
+      .approve(vault.target, token.balanceOf(alice.address));
     await vault.connect(alice).deposit(parseEther(500 * 10 ** 3));
 
     // bob withdraw into alice address
@@ -148,6 +153,7 @@ describe("Vault", function () {
       vault.connect(carol).withdraw(parseEther(1 * 10 ** 3), alice.address)
     ).revertedWith("Caller is not a withdrawer");
   });
+
   it("Should not withdraw, ERC20: transfer amount exceeds balance", async () => {
     //grant withdrawer role to Bob
     let WITHDRAWER_ROLE = keccak256(toUtf8Bytes("WITHDRAWER_ROLE"));
@@ -162,12 +168,12 @@ describe("Vault", function () {
     await token.transfer(alice.address, parseEther(1 * 10 ** 6));
     await token
       .connect(alice)
-      .approve(vault.address, token.balanceOf(alice.address));
+      .approve(vault.target, token.balanceOf(alice.address));
     await vault.connect(alice).deposit(parseEther(2 * 10 ** 3));
 
     // bob withdraw into alice address
     await expect(
       vault.connect(bob).withdraw(parseEther(3 * 10 ** 3), alice.address)
-    ).revertedWith("ERC20: transfer amount exceeds balance");
+    ).revertedWith("Vault: Insufficient funds");
   });
 });
