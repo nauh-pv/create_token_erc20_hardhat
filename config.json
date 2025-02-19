@@ -1,5 +1,8 @@
 {
   "dev": {},
-  "bsctest": {},
+  "bsctest": {
+    "Floppy": "0x956606FE93AdA314D4Cf4db2fa78b3fdB8110605",
+    "Vault": "0x4B6865678d13Bf7BD6f98a19b5e497F066057D75"
+  },
   "main": {}
 }

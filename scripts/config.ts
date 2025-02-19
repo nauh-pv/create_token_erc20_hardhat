@@ -1,10 +1,13 @@
 import { promises as fs } from "fs";
+import path from "path";
+
+const configPath = path.join(__dirname, "../config.json");
 
 var config: any;
 
 export async function initConfig() {
-  console.log("init");
-  config = JSON.parse((await fs.readFile("./config.json")).toString());
+  config = JSON.parse((await fs.readFile(configPath)).toString());
+
   return config;
 }
 
@@ -20,11 +23,9 @@ export function setConfig(path: string, val: string) {
   while (splitPath.length > 1) {
     let key = splitPath.pop();
     if (key) {
-      if (!ref[key]) {
-        ref[key] = {};
-        ref = ref[key];
-      } else return;
-    }
+      if (!ref[key]) ref[key] = {};
+      ref = ref[key];
+    } else return;
   }
 
   let key = splitPath.pop();
@@ -34,5 +35,5 @@ export function setConfig(path: string, val: string) {
 export async function updateConfig() {
   console.log("write: ", JSON.stringify(config));
 
-  return fs.writeFile("./config.json", JSON.stringify(config, null, 2));
+  return fs.writeFile(configPath, JSON.stringify(config, null, 2));
 }
